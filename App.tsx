@@ -1,22 +1,18 @@
-Import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { 
   BookOpen, 
   Film, 
-  Scissors, 
   Cookie, 
-  Dumbbell, 
   Calendar as CalendarIcon,
   Settings as SettingsIcon,
   ChevronLeft,
-  ChevronRight,
-  Menu
+  ChevronRight
 } from 'lucide-react';
-import { Activity, Category, ViewMode, ReadingActivity, MovieActivity, KnittingActivity, BakingActivity, ExerciseActivity } from './types';
+import { Activity, ViewMode, ReadingActivity, MovieActivity, BakingActivity } from './types';
 import ReadingManager from './components/ReadingManager';
 import MovieManager from './components/MovieManager';
-import KnittingManager from './components/KnittingManager';
 import BakingManager from './components/BakingManager';
-import ExerciseManager from './components/ExerciseManager';
 import CalendarView from './components/CalendarView';
 import SettingsManager from './components/SettingsManager';
 
@@ -37,7 +33,11 @@ const App: React.FC = () => {
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     
     if (savedData) {
-      try { setActivities(JSON.parse(savedData)); } catch (e) { console.error(e); }
+      try { 
+        const parsed = JSON.parse(savedData);
+        // Filter out knitting and exercise from old data to prevent errors
+        setActivities(parsed.filter((a: any) => a.category !== 'knitting' && a.category !== 'exercise')); 
+      } catch (e) { console.error(e); }
     }
     if (savedSettings) {
       try { setMoviePlatforms(JSON.parse(savedSettings)); } catch (e) { setMoviePlatforms(DEFAULT_PLATFORMS); }
@@ -80,9 +80,7 @@ const App: React.FC = () => {
     { id: 'calendar', name: '달력', icon: CalendarIcon, color: 'bg-slate-500' },
     { id: 'reading', name: '독서', icon: BookOpen, color: 'bg-amber-500' },
     { id: 'movie', name: '영화', icon: Film, color: 'bg-indigo-500' },
-    { id: 'knitting', name: '뜨개질', icon: Scissors, color: 'bg-rose-500' },
     { id: 'baking', name: '베이킹', icon: Cookie, color: 'bg-orange-500' },
-    { id: 'exercise', name: '운동', icon: Dumbbell, color: 'bg-emerald-500' },
     { id: 'settings', name: '설정/백업', icon: SettingsIcon, color: 'bg-slate-700' },
   ];
 
@@ -105,23 +103,9 @@ const App: React.FC = () => {
           onDelete={deleteActivity}
           onUpdate={updateActivity}
         />;
-      case 'knitting':
-        return <KnittingManager 
-          activities={activities.filter(a => a.category === 'knitting') as KnittingActivity[]} 
-          onAdd={addActivity} 
-          onDelete={deleteActivity}
-          onUpdate={updateActivity}
-        />;
       case 'baking':
         return <BakingManager 
           activities={activities.filter(a => a.category === 'baking') as BakingActivity[]} 
-          onAdd={addActivity} 
-          onDelete={deleteActivity}
-          onUpdate={updateActivity}
-        />;
-      case 'exercise':
-        return <ExerciseManager 
-          activities={activities.filter(a => a.category === 'exercise') as ExerciseActivity[]} 
           onAdd={addActivity} 
           onDelete={deleteActivity}
           onUpdate={updateActivity}
@@ -132,7 +116,7 @@ const App: React.FC = () => {
           platforms={moviePlatforms}
           onAddPlatform={addPlatform}
           onDeletePlatform={deletePlatform}
-          onImport={(data) => setActivities(data)} 
+          onImport={(data) => setActivities(data.filter(a => a.category !== 'knitting' && a.category !== 'exercise'))} 
         />;
       default:
         return null;
@@ -160,7 +144,6 @@ const App: React.FC = () => {
             )}
           </div>
           
-          {/* Collapse Button - Fixed positioning for better clickability when collapsed */}
           <button 
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className={`flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-all border border-slate-100 bg-white shadow-sm z-50 ${

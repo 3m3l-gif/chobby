@@ -22,9 +22,7 @@ const CalendarView: React.FC<Props> = ({ activities }) => {
   const categoryColors: Record<string, string> = {
     reading: 'bg-amber-100 text-amber-700 border-amber-200',
     movie: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    knitting: 'bg-rose-100 text-rose-700 border-rose-200',
     baking: 'bg-orange-100 text-orange-700 border-orange-200',
-    exercise: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   };
 
   const getDayActivities = (day: Date) => {

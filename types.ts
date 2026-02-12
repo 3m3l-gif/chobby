@@ -1,44 +1,55 @@
-export type Category = 'reading' | 'movie' | 'knitting' | 'baking' | 'exercise';
-export type ViewMode = 'calendar' | Category | 'settings';
+
+export type Category = 'reading' | 'movie' | 'baking' | 'knitting' | 'exercise';
 
 export interface BaseActivity {
   id: string;
-  date: string; // App.tsx에서 사용하는 핵심 날짜 필드
   category: Category;
-  memo?: string;
+  title: string;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  isCompleted: boolean;
 }
 
 export interface ReadingActivity extends BaseActivity {
-  category: 'reading';
-  title: string;
   author?: string;
+  genre?: string;
+  memo?: string;
 }
 
 export interface MovieActivity extends BaseActivity {
-  category: 'movie';
-  title: string;
   platform?: string;
-}
-
-export interface KnittingActivity extends BaseActivity {
-  category: 'knitting';
-  item: string; 
+  memo?: string;
 }
 
 export interface BakingActivity extends BaseActivity {
-  category: 'baking';
-  menu: string;
+  scaling?: string;
+  ovenTemp?: string;
+  ovenTime?: string;
+  recipe?: string;
+  link?: string;
 }
 
+// Added KnittingActivity to resolve error in KnittingManager.tsx
+export interface KnittingActivity extends BaseActivity {
+  pattern?: string;
+  yarn?: string;
+  needleType?: string;
+  needleSize?: string;
+}
+
+// Added ExerciseActivity to resolve error in ExerciseManager.tsx
 export interface ExerciseActivity extends BaseActivity {
-  category: 'exercise';
-  type: string;
-  duration: string;
+  type?: string;
+  time?: string;
+  memo?: string;
 }
 
 export type Activity = 
   | ReadingActivity 
   | MovieActivity 
-  | KnittingActivity 
-  | BakingActivity 
+  | BakingActivity
+  | KnittingActivity
   | ExerciseActivity;
+
+export type ViewMode = 'calendar' | Category | 'settings';
