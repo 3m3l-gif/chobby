@@ -3,7 +3,7 @@ export type ViewMode = 'calendar' | Category | 'settings';
 
 export interface BaseActivity {
   id: string;
-  date: string; // App.tsx에서 사용하는 날짜 필드
+  date: string; // App.tsx에서 사용하는 핵심 날짜 필드
   category: Category;
   memo?: string;
 }
@@ -22,18 +22,18 @@ export interface MovieActivity extends BaseActivity {
 
 export interface KnittingActivity extends BaseActivity {
   category: 'knitting';
-  item: string; // App.tsx 호환용
+  item: string; 
 }
 
 export interface BakingActivity extends BaseActivity {
   category: 'baking';
-  menu: string; // App.tsx 호환용
+  menu: string;
 }
 
 export interface ExerciseActivity extends BaseActivity {
   category: 'exercise';
   type: string;
-  duration: string; // App.tsx 호환용
+  duration: string;
 }
 
 export type Activity = 
