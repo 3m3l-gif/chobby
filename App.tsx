@@ -3,21 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { 
   BookOpen, 
   Film, 
-  Cookie, 
   Calendar as CalendarIcon,
   Settings as SettingsIcon,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { Activity, ViewMode, ReadingActivity, MovieActivity, BakingActivity } from './types';
+import { Activity, ViewMode, ReadingActivity, MovieActivity } from './types';
 import ReadingManager from './components/ReadingManager';
 import MovieManager from './components/MovieManager';
-import BakingManager from './components/BakingManager';
 import CalendarView from './components/CalendarView';
 import SettingsManager from './components/SettingsManager';
 
 const STORAGE_KEY = 'chobby_data';
 const SETTINGS_KEY = 'chobby_settings';
+const VALID_CATEGORIES = ['reading', 'movie'];
 
 const DEFAULT_PLATFORMS = ['영화관', '넷플릭스', '티빙', '디즈니+', '왓챠', '쿠팡플레이', '유튜브'];
 
@@ -35,8 +34,8 @@ const App: React.FC = () => {
     if (savedData) {
       try { 
         const parsed = JSON.parse(savedData);
-        // Filter out knitting and exercise from old data to prevent errors
-        setActivities(parsed.filter((a: any) => a.category !== 'knitting' && a.category !== 'exercise')); 
+        // Filter out deleted categories from old data
+        setActivities(parsed.filter((a: any) => VALID_CATEGORIES.includes(a.category))); 
       } catch (e) { console.error(e); }
     }
     if (savedSettings) {
@@ -80,7 +79,6 @@ const App: React.FC = () => {
     { id: 'calendar', name: '달력', icon: CalendarIcon, color: 'bg-slate-500' },
     { id: 'reading', name: '독서', icon: BookOpen, color: 'bg-amber-500' },
     { id: 'movie', name: '영화', icon: Film, color: 'bg-indigo-500' },
-    { id: 'baking', name: '베이킹', icon: Cookie, color: 'bg-orange-500' },
     { id: 'settings', name: '설정/백업', icon: SettingsIcon, color: 'bg-slate-700' },
   ];
 
@@ -103,20 +101,13 @@ const App: React.FC = () => {
           onDelete={deleteActivity}
           onUpdate={updateActivity}
         />;
-      case 'baking':
-        return <BakingManager 
-          activities={activities.filter(a => a.category === 'baking') as BakingActivity[]} 
-          onAdd={addActivity} 
-          onDelete={deleteActivity}
-          onUpdate={updateActivity}
-        />;
       case 'settings':
         return <SettingsManager 
           activities={activities} 
           platforms={moviePlatforms}
           onAddPlatform={addPlatform}
           onDeletePlatform={deletePlatform}
-          onImport={(data) => setActivities(data.filter(a => a.category !== 'knitting' && a.category !== 'exercise'))} 
+          onImport={(data) => setActivities(data.filter(a => VALID_CATEGORIES.includes(a.category)))} 
         />;
       default:
         return null;

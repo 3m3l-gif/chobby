@@ -1,5 +1,6 @@
 
-export type Category = 'reading' | 'movie' | 'baking' | 'knitting' | 'exercise';
+// Hobby category types
+export type Category = 'reading' | 'movie' | 'knitting' | 'baking' | 'exercise';
 
 export interface BaseActivity {
   id: string;
@@ -22,6 +23,14 @@ export interface MovieActivity extends BaseActivity {
   memo?: string;
 }
 
+// Added missing activity types for Knitting, Baking, and Exercise
+export interface KnittingActivity extends BaseActivity {
+  pattern?: string;
+  yarn?: string;
+  needleType: string;
+  needleSize?: string;
+}
+
 export interface BakingActivity extends BaseActivity {
   scaling?: string;
   ovenTemp?: string;
@@ -30,26 +39,17 @@ export interface BakingActivity extends BaseActivity {
   link?: string;
 }
 
-// Added KnittingActivity to resolve error in KnittingManager.tsx
-export interface KnittingActivity extends BaseActivity {
-  pattern?: string;
-  yarn?: string;
-  needleType?: string;
-  needleSize?: string;
-}
-
-// Added ExerciseActivity to resolve error in ExerciseManager.tsx
 export interface ExerciseActivity extends BaseActivity {
-  type?: string;
+  type: string;
   time?: string;
   memo?: string;
 }
 
 export type Activity = 
   | ReadingActivity 
-  | MovieActivity 
-  | BakingActivity
+  | MovieActivity
   | KnittingActivity
+  | BakingActivity
   | ExerciseActivity;
 
 export type ViewMode = 'calendar' | Category | 'settings';

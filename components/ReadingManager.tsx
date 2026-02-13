@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Activity, ReadingActivity } from '../types';
-import { Plus, Trash2, ArrowUpDown, List, PenTool, SortAsc, SortDesc, Calendar, Type } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, List, PenTool, SortAsc, SortDesc, Calendar, Type, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Props {
@@ -11,11 +11,12 @@ interface Props {
   onUpdate: (id: string, updates: Partial<Activity>) => void;
 }
 
-const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete }) => {
+const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete, onUpdate }) => {
   const [activeMode, setActiveMode] = useState<'record' | 'list'>('list');
   const [tab, setTab] = useState<'wishlist' | 'completed'>('wishlist');
   const [sortField, setSortField] = useState<'title' | 'createdAt'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [formData, setFormData] = useState({
     title: '',
@@ -29,6 +30,12 @@ const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) return;
+
+    // 중복 체크
+    if (activities.some(a => a.title.trim() === formData.title.trim())) {
+      alert('이미 등록된 책 제목입니다.');
+      return;
+    }
 
     const newActivity: ReadingActivity = {
       id: crypto.randomUUID(),
@@ -45,11 +52,23 @@ const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete }) => {
 
     onAdd(newActivity);
     setFormData({ title: '', author: '', genre: '', startDate: '', endDate: '', memo: '' });
-    // setActiveMode('list'); // 연속 등록을 위해 목록 이동 로직 제거
   };
 
-  const filtered = activities.filter(a => a.isCompleted === (tab === 'completed'));
-  const sorted = [...filtered].sort((a, b) => {
+  const handleMarkAsComplete = (id: string) => {
+    onUpdate(id, { 
+      isCompleted: true, 
+      endDate: format(new Date(), 'yyyy-MM-dd') 
+    });
+  };
+
+  const filteredByTab = activities.filter(a => a.isCompleted === (tab === 'completed'));
+  
+  const searched = filteredByTab.filter(a => 
+    a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (a.author && a.author.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const sorted = [...searched].sort((a, b) => {
     if (sortField === 'title') {
       return sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
     } else {
@@ -201,30 +220,44 @@ const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete }) => {
               </button>
             </div>
 
-            {/* 분리된 정렬 컨트롤바 */}
-            <div className="flex items-center gap-3 bg-white p-1.5 border border-slate-200 rounded-xl">
-              <div className="flex bg-slate-50 p-0.5 rounded-lg border border-slate-100">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* 검색 바 */}
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                <input 
+                  type="text" 
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="제목, 작가 검색..."
+                  className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 outline-none w-48 md:w-64"
+                />
+              </div>
+
+              {/* 정렬 컨트롤바 */}
+              <div className="flex items-center gap-3 bg-white p-1.5 border border-slate-200 rounded-xl">
+                <div className="flex bg-slate-50 p-0.5 rounded-lg border border-slate-100">
+                  <button 
+                    onClick={() => setSortField('title')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${sortField === 'title' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <Type size={14} /> 가나다순
+                  </button>
+                  <button 
+                    onClick={() => setSortField('createdAt')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${sortField === 'createdAt' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <Calendar size={14} /> 날짜순
+                  </button>
+                </div>
+                <div className="w-px h-4 bg-slate-200"></div>
                 <button 
-                  onClick={() => setSortField('title')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${sortField === 'title' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-600 hover:bg-slate-100 transition-all"
                 >
-                  <Type size={14} /> 가나다순
-                </button>
-                <button 
-                  onClick={() => setSortField('createdAt')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${sortField === 'createdAt' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                >
-                  <Calendar size={14} /> 날짜순
+                  {sortOrder === 'asc' ? <SortAsc size={14} /> : <SortDesc size={14} />}
+                  {sortOrder === 'asc' ? '오름차순' : '내림차순'}
                 </button>
               </div>
-              <div className="w-px h-4 bg-slate-200"></div>
-              <button 
-                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-600 hover:bg-slate-100 transition-all"
-              >
-                {sortOrder === 'asc' ? <SortAsc size={14} /> : <SortDesc size={14} />}
-                {sortOrder === 'asc' ? '오름차순' : '내림차순'}
-              </button>
             </div>
           </div>
 
@@ -244,7 +277,9 @@ const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete }) => {
                 <tbody className="divide-y divide-slate-100">
                   {sorted.length === 0 ? (
                     <tr>
-                      <td colSpan={tab === 'completed' ? 6 : 5} className="px-6 py-16 text-center text-slate-400 font-medium">등록된 책이 없습니다.</td>
+                      <td colSpan={tab === 'completed' ? 6 : 5} className="px-6 py-16 text-center text-slate-400 font-medium">
+                        {searchTerm ? '검색 결과가 없습니다.' : '등록된 책이 없습니다.'}
+                      </td>
                     </tr>
                   ) : (
                     sorted.map(item => (
@@ -264,9 +299,23 @@ const ReadingManager: React.FC<Props> = ({ activities, onAdd, onDelete }) => {
                             </td>
                           )}
                           <td className="px-6 py-4 text-right">
-                            <button onClick={() => onDelete(item.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors">
-                              <Trash2 size={16} />
-                            </button>
+                            <div className="flex justify-end gap-1">
+                              {!item.isCompleted && (
+                                <button 
+                                  onClick={() => handleMarkAsComplete(item.id)}
+                                  className="p-2 text-slate-300 hover:text-emerald-500 transition-colors"
+                                  title="읽음 처리"
+                                >
+                                  <CheckCircle size={18} />
+                                </button>
+                              )}
+                              <button 
+                                onClick={() => onDelete(item.id)} 
+                                className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                         {item.memo && tab === 'completed' && (

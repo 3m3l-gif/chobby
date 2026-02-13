@@ -19,10 +19,10 @@ const CalendarView: React.FC<Props> = ({ activities }) => {
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
+  // Simplified category colors for Reading and Movie only
   const categoryColors: Record<string, string> = {
     reading: 'bg-amber-100 text-amber-700 border-amber-200',
     movie: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    baking: 'bg-orange-100 text-orange-700 border-orange-200',
   };
 
   const getDayActivities = (day: Date) => {
@@ -98,7 +98,7 @@ const CalendarView: React.FC<Props> = ({ activities }) => {
                   {dayActivities.map(act => (
                     <div 
                       key={act.id} 
-                      className={`text-[8px] md:text-[9px] px-1 py-0.5 rounded border border-opacity-50 truncate font-bold ${categoryColors[act.category]}`}
+                      className={`text-[8px] md:text-[9px] px-1 py-0.5 rounded border border-opacity-50 truncate font-bold ${categoryColors[act.category] || 'bg-slate-100 text-slate-600 border-slate-200'}`}
                       title={act.title}
                     >
                       {act.title}
