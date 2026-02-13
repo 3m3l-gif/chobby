@@ -1,5 +1,5 @@
 {
-  "name": "Chobby - Your Hobby Companion",
-  "description": "A streamlined hobby management system to track reading and movies with a unified calendar view.",
+  "name": "Chobby - Reading & Movie Log",
+  "description": "A focused hobby management system to track your reading and movie history with cloud database sync.",
   "requestFramePermissions": []
 }

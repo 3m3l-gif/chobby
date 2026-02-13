@@ -42,7 +42,7 @@ const CalendarView: React.FC<Props> = ({ activities }) => {
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">
             {format(currentDate, 'yyyy년 M월', { locale: ko })}
           </h2>
-          <p className="text-slate-400 text-[10px] md:text-xs font-medium uppercase tracking-wider">대한민국 표준시(KST)</p>
+          <p className="text-slate-400 text-[10px] md:text-xs font-medium uppercase tracking-wider">기록 캘린더</p>
         </div>
         <div className="flex gap-1 md:gap-2">
           <button 

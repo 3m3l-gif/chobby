@@ -23,7 +23,6 @@ export interface MovieActivity extends BaseActivity {
   memo?: string;
 }
 
-// Added missing activity types for Knitting, Baking, and Exercise
 export interface KnittingActivity extends BaseActivity {
   pattern?: string;
   yarn?: string;
@@ -53,3 +52,9 @@ export type Activity =
   | ExerciseActivity;
 
 export type ViewMode = 'calendar' | Category | 'settings';
+
+export interface CloudSettings {
+  dbUrl: string;
+  dbKey: string;
+  lastSyncedAt?: string;
+}
