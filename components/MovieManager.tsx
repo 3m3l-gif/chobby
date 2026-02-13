@@ -40,7 +40,7 @@ const MovieManager: React.FC<Props> = ({ activities, platforms, onAdd, onDelete 
 
     onAdd(newActivity);
     setFormData({ title: '', platform: platforms[0] || '기타', startDate: '', endDate: '', memo: '' });
-    setActiveMode('list');
+    // setActiveMode('list'); // 연속 등록을 위해 목록 이동 로직 제거
   };
 
   const filtered = activities.filter(a => a.isCompleted === (tab === 'watched'));
