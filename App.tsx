@@ -20,7 +20,6 @@ import MovieManager from './components/MovieManager';
 import CalendarView from './components/CalendarView';
 import SettingsManager from './components/SettingsManager';
 
-const STORAGE_KEY = 'chobby_data';
 const SETTINGS_KEY = 'chobby_settings';
 const CLOUD_KEY = 'chobby_cloud_meta';
 const VALID_CATEGORIES = ['reading', 'movie'];
@@ -34,30 +33,39 @@ const App: React.FC = () => {
   const [moviePlatforms, setMoviePlatforms] = useState<string[]>(DEFAULT_PLATFORMS);
   const [cloudMeta, setCloudMeta] = useState<CloudSettings>({ dbUrl: '', dbKey: '' });
 
-  // Load data & settings
-  useEffect(() => {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    const savedCloud = localStorage.getItem(CLOUD_KEY);
-    
-    if (savedData) {
-      try { 
-        const parsed = JSON.parse(savedData);
-        setActivities(parsed.filter((a: any) => VALID_CATEGORIES.includes(a.category))); 
-      } catch (e) { console.error(e); }
-    }
-    if (savedSettings) {
-      try { setMoviePlatforms(JSON.parse(savedSettings)); } catch (e) { setMoviePlatforms(DEFAULT_PLATFORMS); }
-    }
-    if (savedCloud) {
-      try { setCloudMeta(JSON.parse(savedCloud)); } catch (e) { console.error(e); }
-    }
-  }, []);
+useEffect(() => {
+  // ✅ DB에서 활동 데이터 불러오기
+  fetch('/api/getActivities.php')
+    .then(res => res.json())
+    .then(data => {
+      setActivities(
+        data.filter((a: any) =>
+          VALID_CATEGORIES.includes(a.category)
+        )
+      );
+    })
+    .catch(err => console.error(err));
 
-  // Save data
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(activities));
-  }, [activities]);
+  // ✅ 설정은 아직 localStorage 유지 가능
+  const savedSettings = localStorage.getItem(SETTINGS_KEY);
+  const savedCloud = localStorage.getItem(CLOUD_KEY);
+
+  if (savedSettings) {
+    try {
+      setMoviePlatforms(JSON.parse(savedSettings));
+    } catch {
+      setMoviePlatforms(DEFAULT_PLATFORMS);
+    }
+  }
+
+  if (savedCloud) {
+    try {
+      setCloudMeta(JSON.parse(savedCloud));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}, []);
 
   // Save settings
   useEffect(() => {
@@ -65,17 +73,55 @@ const App: React.FC = () => {
     localStorage.setItem(CLOUD_KEY, JSON.stringify(cloudMeta));
   }, [moviePlatforms, cloudMeta]);
 
-  const addActivity = (activity: Activity) => {
-    setActivities(prev => [...prev, activity]);
-  };
+const addActivity = async (activity: Activity) => {
+  const res = await fetch('/api/addActivity.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(activity),
+  });
 
-  const deleteActivity = (id: string) => {
-    setActivities(prev => prev.filter(a => a.id !== id));
-  };
+  const saved = await res.json();
 
-  const updateActivity = (id: string, updates: Partial<Activity>) => {
-    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updates } as Activity : a));
-  };
+  setActivities(prev => [...prev, saved]);
+};
+
+const deleteActivity = async (id: string) => {
+  await fetch('/api/deleteActivity.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  setActivities(prev => prev.filter(a => a.id !== id));
+};
+
+const updateActivity = async (
+  id: string,
+  updates: Partial<Activity>
+) => {
+  try {
+    await fetch('/api/updateActivity.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id, updates }),
+    });
+
+    // 화면 업데이트
+    setActivities(prev =>
+      prev.map(a =>
+        a.id === id ? { ...a, ...updates } : a
+      )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const addPlatform = (name: string) => {
     if (name && !moviePlatforms.includes(name)) {
