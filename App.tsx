@@ -22,7 +22,6 @@ import SettingsManager from './components/SettingsManager';
 
 const STORAGE_KEY = 'chobby_data';
 const SETTINGS_KEY = 'chobby_settings';
-const CLOUD_KEY = 'chobby_cloud_meta';
 const VALID_CATEGORIES = ['reading', 'movie'];
 
 const DEFAULT_PLATFORMS = ['영화관', '넷플릭스', '티빙', '디즈니+', '왓챠', '쿠팡플레이', '유튜브'];
@@ -32,13 +31,11 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>('calendar');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [moviePlatforms, setMoviePlatforms] = useState<string[]>(DEFAULT_PLATFORMS);
-  const [cloudMeta, setCloudMeta] = useState<CloudSettings>({ dbUrl: '', dbKey: '' });
 
   // Load data & settings
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    const savedCloud = localStorage.getItem(CLOUD_KEY);
     
     if (savedData) {
       try { 
@@ -48,9 +45,6 @@ const App: React.FC = () => {
     }
     if (savedSettings) {
       try { setMoviePlatforms(JSON.parse(savedSettings)); } catch (e) { setMoviePlatforms(DEFAULT_PLATFORMS); }
-    }
-    if (savedCloud) {
-      try { setCloudMeta(JSON.parse(savedCloud)); } catch (e) { console.error(e); }
     }
   }, []);
 
@@ -62,8 +56,7 @@ const App: React.FC = () => {
   // Save settings
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(moviePlatforms));
-    localStorage.setItem(CLOUD_KEY, JSON.stringify(cloudMeta));
-  }, [moviePlatforms, cloudMeta]);
+  }, [moviePlatforms]);
 
   const addActivity = (activity: Activity) => {
     setActivities(prev => [...prev, activity]);
@@ -92,7 +85,7 @@ const App: React.FC = () => {
     { id: 'calendar', name: '달력', icon: CalendarIcon, color: 'bg-slate-500' },
     { id: 'reading', name: '독서 기록', icon: BookOpen, color: 'bg-amber-500' },
     { id: 'movie', name: '영화 기록', icon: Film, color: 'bg-indigo-500' },
-    { id: 'settings', name: '설정/동기화', icon: SettingsIcon, color: 'bg-slate-700' },
+    { id: 'settings', name: '설정/백업', icon: SettingsIcon, color: 'bg-slate-700' },
   ];
 
   const renderView = () => {
@@ -118,8 +111,6 @@ const App: React.FC = () => {
         return <SettingsManager 
           activities={activities} 
           platforms={moviePlatforms}
-          cloudMeta={cloudMeta}
-          onUpdateCloudMeta={setCloudMeta}
           onAddPlatform={addPlatform}
           onDeletePlatform={deletePlatform}
           onImport={(data) => setActivities(data.filter(a => VALID_CATEGORIES.includes(a.category)))} 
