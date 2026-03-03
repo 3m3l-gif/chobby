@@ -21,16 +21,23 @@ const SettingsManager: React.FC<Props> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newPlatform, setNewPlatform] = useState('');
 
-  // 1. JSON 파일로 내보내기
-  const exportData = () => {
+  // 1. JSON 파일로 내보내기 (수정 버전)
+  const exportData = () => {  // 데이터를 예쁜 JSON 문자열로 변환합니다.
     const dataStr = JSON.stringify(activities, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `chobby_backup_${new Date().toISOString().split('T')[0]}.json`;
-    
+    const blob = new Blob([dataStr], { type: 'application/json' });  // 데이터를 파일 객체(Blob)로 만듭니다. (더 안전하고 표준적인 방식)
+    const url = URL.createObjectURL(blob);  // 브라우저가 이 파일에 접근할 수 있는 임시 주소를 생성합니다.
+    const exportFileDefaultName = `chobby_backup_${new Date().toISOString().split('T')[0]}.json`;  // 오늘 날짜를 포함한 파일명을 만듭니다.
     const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.href = url;
+    linkElement.download = exportFileDefaultName;
+    
+    // 브라우저에 따라 링크가 문서에 붙어있어야 작동하는 경우가 있어 안전하게 추가합니다.
+    document.body.appendChild(linkElement);
     linkElement.click();
+    
+    // 다운로드가 끝난 후 링크를 제거하고 메모리를 해제합니다.
+    document.body.removeChild(linkElement);
+    URL.revokeObjectURL(url);
   };
 
   // 2. 클립보드에 JSON 복사
